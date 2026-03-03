@@ -1,0 +1,57 @@
+{
+  "name": "@techhspyder/pdfbridge-node",
+  "version": "1.0.2",
+  "description": "The official Node.js SDK for the PDFBridge API. Generate pixel-perfect PDFs from HTML/URLs.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "pdf",
+    "html-to-pdf",
+    "pdfbridge",
+    "tailwind",
+    "puppeteer-alternative",
+    "api",
+    "gotenberg",
+    "developer tools",
+    "automated document generation",
+    "html to pdf api",
+    "automated pdf generation",
+    "react pdf export",
+    "pdf rendering issues",
+    "secure document conversion",
+    "bulk pdf creation",
+    "javascript pdf output",
+    "invoice pdf automation"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "TechhSpyder",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  }
+}
