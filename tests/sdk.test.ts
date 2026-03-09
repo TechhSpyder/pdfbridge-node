@@ -75,4 +75,104 @@ describe("PDFBridge SDK", () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect((response as any).jobId).toBe("job_recovered");
   });
+
+  it("should call POST /normalize-invoice correctly", async () => {
+    const client = new PDFBridge({ apiKey: "pk_test_123" });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({
+        message: "Normalization started",
+        jobId: "norm_123",
+        statusUrl: "/api/v1/jobs/norm_123",
+      }),
+    });
+
+    const response = await client.normalizeInvoice({
+      url: "https://example.com/invoice.pdf",
+      idempotencyKey: "idem_123",
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.pdfbridge.xyz/api/v1/normalize-invoice",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "x-api-key": "pk_test_123",
+          "x-idempotency-key": "idem_123",
+        }),
+        body: JSON.stringify({
+          url: "https://example.com/invoice.pdf",
+          idempotencyKey: "idem_123",
+        }),
+      }),
+    );
+
+    expect(response).toEqual({
+      message: "Normalization started",
+      jobId: "norm_123",
+      statusUrl: "/api/v1/jobs/norm_123",
+    });
+  });
+
+  it("should call extractAndWait and poll correctly", async () => {
+    const client = new PDFBridge({ apiKey: "pk_test_123" });
+
+    // 1. Initial POST /extract
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ jobId: "ext_123" }),
+    });
+
+    // 2. Poll /jobs/ext_123 (PROCESSING)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ id: "ext_123", status: "PROCESSING" }),
+    });
+
+    // 3. Poll /jobs/ext_123 (COMPLETED)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({
+        id: "ext_123",
+        status: "COMPLETED",
+        aiMetadata: { vendorName: "Test Vendor" },
+      }),
+    });
+
+    const response = await client.extractAndWait(Buffer.from("%PDF"), {
+      pollIntervalMs: 10,
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(response.status).toBe("COMPLETED");
+    expect(response.aiMetadata?.vendorName).toBe("Test Vendor");
+  });
+
+  it("should support file upload in normalizeInvoice", async () => {
+    const client = new PDFBridge({ apiKey: "pk_test_123" });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ jobId: "norm_file_123" }),
+    });
+
+    await client.normalizeInvoice({
+      file: Buffer.from("%PDF"),
+      filename: "inv.pdf",
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.pdfbridge.xyz/api/v1/normalize-invoice",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.any(FormData),
+      }),
+    );
+  });
 });

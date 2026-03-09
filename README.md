@@ -67,17 +67,57 @@ const response = await pdf.generate({
 });
 ```
 
-### 4. Bulk Generation & AI Parsing
+### 4. AI Data Extraction
 
-Convert up to 1,000 documents simultaneously, and optionally let our internal LLM extract structured JSON from the visual output.
+Extract structured JSON (vendors, line items, totals) from any existing PDF file. Works natively with buffers or file paths.
+
+```typescript
+const response = await pdf.extract("invoice_scan.pdf", {
+  filename: "processed_invoice.pdf"
+});
+
+// Or extract and poll until completion
+const job = await pdf.extractAndWait(buffer);
+console.log(job.aiMetadata.vendorName); // "Acme Corp"
+```
+
+### 5. Normalize & Process (Closed-Loop)
+
+Convert messy legacy PDFs into crisp, branded professional documents while extracting data in one atomic workflow.
+
+```typescript
+const response = await pdf.normalizeInvoice({
+  file: buffer,
+  templateId: "branded_invoice_v2",
+  tailwind: true
+});
+```
+
+### 6. Bulk Generation & Webhooks
+
+Convert up to 1,000 documents simultaneously.
 
 ```typescript
 const response = await pdf.generateBulk({
-  extractMetadata: true, // Get AI-extracted JSON sent to your webhook
   webhookUrl: "https://your-api.com/pdf-webhook",
   jobs: [
     { url: "https://...", filename: "doc1.pdf" },
     { url: "https://...", filename: "doc2.pdf" },
   ],
 });
+```
+
+## Security & Verification
+
+We recommend verifying webhook payloads using our built-in utility to ensure requests are authentic:
+
+```typescript
+import { PDFBridge } from "@techhspyder/pdfbridge-node";
+
+// In your Express/Next.js route
+const isValid = await PDFBridge.verifyWebhookSignature(
+  JSON.stringify(req.body),
+  req.headers["x-pdfbridge-signature"] as string,
+  process.env.PDFBRIDGE_WEBHOOK_SECRET
+);
 ```

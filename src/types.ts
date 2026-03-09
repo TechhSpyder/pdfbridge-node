@@ -45,6 +45,7 @@ export const ConvertRequestSchema = z
     templateId: z.string().optional(),
     variables: z.record(z.any()).optional(),
     options: PdfOptionsSchema.optional(),
+    idempotencyKey: z.string().optional(),
   })
   .refine((data) => data.url || data.html || data.templateId, {
     message: "You must provide either 'url', 'html', or 'templateId'",
@@ -57,6 +58,34 @@ export const BulkConvertRequestSchema = z.object({
   webhookUrl: z.string().url().optional(),
   extractMetadata: z.boolean().optional(),
 });
+
+export interface LineItem {
+  description: string;
+  quantity: number | null;
+  unitPrice: number | null;
+  totalPrice: number | null;
+}
+
+export interface InvoiceExtractionResult {
+  documentType: string;
+  totalAmount: number | null;
+  taxAmount: number | null;
+  currency: string | null;
+  date: string | null;
+  vendorName: string | null;
+  customerName: string | null;
+  invoiceNumber: string | null;
+  lineItems: LineItem[];
+  summary: string;
+  tags: string[];
+  extractionVersion: string;
+  requiresReview: boolean;
+  processedAt: string;
+}
+
+export interface NormalizeRequest extends ConvertRequest {
+  templateId?: string;
+}
 
 export type PdfOptions = z.infer<typeof PdfOptionsSchema>;
 export type ConvertRequest = z.infer<typeof ConvertRequestSchema>;
@@ -76,6 +105,12 @@ export interface JobStatusResponse {
   createdAt: string;
   updatedAt: string;
   metadata?: any;
+  aiMetadata?: InvoiceExtractionResult | null;
+  result?: {
+    url?: string;
+    aiMetadata?: InvoiceExtractionResult;
+    error?: string;
+  };
 }
 
 export interface BulkConvertResponse {
@@ -84,4 +119,10 @@ export interface BulkConvertResponse {
     jobId: string;
     statusUrl: string;
   }>;
+}
+
+export interface GenerateTemplateResponse {
+  html: string;
+  templateId?: string;
+  previewUrl?: string;
 }

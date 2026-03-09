@@ -1,6 +1,6 @@
 {
   "name": "@techhspyder/pdfbridge-node",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "description": "The official Node.js SDK for the PDFBridge API. Generate pixel-perfect PDFs from HTML/URLs.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -10,6 +10,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.mjs",
+      "require": "./dist/node.js"
     }
   },
   "files": [
